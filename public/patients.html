@@ -1,42 +1,42 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>मरीज़ सूची - क्लिनिक CRM</title>
+    <title>Patient List - Clinic CRM</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
     <nav class="navbar">
         <div class="container">
-            <h1 class="logo">🏥 क्लिनिक CRM</h1>
+            <h1 class="logo">🏥 Clinic CRM</h1>
             <div class="nav-links">
-                <a href="/">डैशबोर्ड</a>
-                <a href="/patients.html" class="active">मरीज़ सूची</a>
-                <a href="/register.html">नया मरीज़</a>
+                <a href="/">Dashboard</a>
+                <a href="/patients.html" class="active">Patient List</a>
+                <a href="/register.html">New Patient</a>
             </div>
         </div>
     </nav>
 
     <div class="container">
         <div class="page-header">
-            <h2>मरीज़ सूची</h2>
-            <a href="/register.html" class="btn btn-primary">+ नया मरीज़ जोड़ें</a>
+            <h2>Patient List</h2>
+            <a href="/register.html" class="btn btn-primary">+ Add New Patient</a>
         </div>
 
         <!-- Search and Filter -->
         <div class="card">
             <div class="search-box">
-                <input type="text" id="searchInput" placeholder="नाम, गाँव, या व्हाट्सएप नंबर से खोजें..." class="form-input">
-                <button onclick="searchPatients()" class="btn btn-primary">खोजें</button>
-                <button onclick="clearSearch()" class="btn btn-secondary">साफ़ करें</button>
+                <input type="text" id="searchInput" placeholder="Search by name, village, or WhatsApp number..." class="form-input">
+                <button onclick="searchPatients()" class="btn btn-primary">Search</button>
+                <button onclick="clearSearch()" class="btn btn-secondary">Clear</button>
             </div>
         </div>
 
         <!-- Patient List -->
         <div class="card">
             <div id="patientsList" class="patient-list">
-                <p class="loading">लोड हो रहा है...</p>
+                <p class="loading">Loading...</p>
             </div>
         </div>
     </div>
@@ -54,7 +54,7 @@
             } catch (error) {
                 console.error('Error loading patients:', error);
                 document.getElementById('patientsList').innerHTML =
-                    '<p class="error">मरीज़ लोड करने में त्रुटि</p>';
+                    '<p class="error">Error loading patients</p>';
             }
         }
 
@@ -62,7 +62,7 @@
             const listDiv = document.getElementById('patientsList');
 
             if (patients.length === 0) {
-                listDiv.innerHTML = '<p class="empty-state">कोई मरीज़ नहीं मिला</p>';
+                listDiv.innerHTML = '<p class="empty-state">No patients found</p>';
                 return;
             }
 
@@ -70,32 +70,32 @@
                 <div class="patient-item" onclick="window.location.href='/patient-detail.html?id=${patient.id}'">
                     <div class="patient-info">
                         <strong>${patient.name}</strong>
-                        ${patient.is_head_of_family ? '<span class="badge badge-success">परिवार मुखिया</span>' : ''}
+                        ${patient.is_head_of_family ? '<span class="badge badge-success">Head of Family</span>' : ''}
                         <span class="badge ${patient.gender === 'Male' ? 'badge-blue' : 'badge-pink'}">
-                            ${patient.gender === 'Male' ? 'पुरुष' : 'महिला'}
+                            ${patient.gender}
                         </span>
-                        <span class="age">${patient.age} वर्ष</span>
+                        <span class="age">${patient.age} years</span>
                     </div>
                     <div class="patient-meta">
                         <span>👤 ${patient.father_or_husband_name}</span>
                         <span>📍 ${patient.village_or_street}</span>
                         <span>📱 ${patient.whatsapp_number}</span>
                     </div>
-                    ${!patient.is_head_of_family ? `<div class="patient-meta"><small>संबंध: ${getRelationInHindi(patient.relation_with_hof)}</small></div>` : ''}
+                    ${!patient.is_head_of_family ? `<div class="patient-meta"><small>Relation: ${getRelationInEnglish(patient.relation_with_hof)}</small></div>` : ''}
                 </div>
             `).join('');
         }
 
-        function getRelationInHindi(relation) {
+        function getRelationInEnglish(relation) {
             const relations = {
-                'self': 'स्वयं',
-                'wife': 'पत्नी',
-                'husband': 'पति',
-                'son': 'बेटा',
-                'daughter': 'बेटी',
-                'mother': 'माँ',
-                'father': 'पिता',
-                'other': 'अन्य'
+                'self': 'Self',
+                'wife': 'Wife',
+                'husband': 'Husband',
+                'son': 'Son',
+                'daughter': 'Daughter',
+                'mother': 'Mother',
+                'father': 'Father',
+                'other': 'Other'
             };
             return relations[relation] || relation;
         }

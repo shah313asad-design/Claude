@@ -1,26 +1,26 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>नई विज़िट - क्लिनिक CRM</title>
+    <title>New Visit - Clinic CRM</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
     <nav class="navbar">
         <div class="container">
-            <h1 class="logo">🏥 क्लिनिक CRM</h1>
+            <h1 class="logo">🏥 Clinic CRM</h1>
             <div class="nav-links">
-                <a href="/">डैशबोर्ड</a>
-                <a href="/patients.html">मरीज़ सूची</a>
-                <a href="/register.html">नया मरीज़</a>
+                <a href="/">Dashboard</a>
+                <a href="/patients.html">Patient List</a>
+                <a href="/register.html">New Patient</a>
             </div>
         </div>
     </nav>
 
     <div class="container">
         <div class="page-header">
-            <h2>नई विज़िट दर्ज करें</h2>
+            <h2>Record New Visit</h2>
         </div>
 
         <div class="patient-info-bar" id="patientInfoBar" style="display: none;">
@@ -32,45 +32,45 @@
                 <input type="hidden" id="patientId" name="patient_id">
 
                 <div class="form-group">
-                    <label for="visitDate">विज़िट की तारीख *</label>
+                    <label for="visitDate">Visit Date *</label>
                     <input type="date" id="visitDate" name="visit_date" class="form-input" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="chiefComplaint">मुख्य शिकायत *</label>
+                    <label for="chiefComplaint">Chief Complaint *</label>
                     <textarea id="chiefComplaint" name="chief_complaint" class="form-input"
-                              rows="3" placeholder="मुख्य शिकायत दर्ज करें..." required></textarea>
-                    <small>कई शिकायतें हों तो कॉमा (,) से अलग करें</small>
+                              rows="3" placeholder="Enter chief complaint..." required></textarea>
+                    <small>Separate multiple complaints with commas (,)</small>
                 </div>
 
                 <div class="form-group">
-                    <label for="pastHistory">पुराना इतिहास</label>
+                    <label for="pastHistory">Past History</label>
                     <textarea id="pastHistory" name="past_history" class="form-input"
-                              rows="3" placeholder="पहले की बीमारियाँ..."></textarea>
+                              rows="3" placeholder="Previous illnesses..."></textarea>
                     <div id="pastHistorySuggestions" class="suggestions"></div>
                 </div>
 
                 <div class="form-group">
-                    <label for="prescription">दवाइयाँ *</label>
+                    <label for="prescription">Prescription *</label>
                     <textarea id="prescription" name="prescription" class="form-input"
-                              rows="5" placeholder="दवाइयों की सूची...&#10;उदाहरण:&#10;Tab Paracetamol 500mg TDS x 3 days&#10;Syrup Cough 2 tsp BD x 5 days" required></textarea>
+                              rows="5" placeholder="Medication list...&#10;Example:&#10;Tab Paracetamol 500mg TDS x 3 days&#10;Syrup Cough 2 tsp BD x 5 days" required></textarea>
                 </div>
 
                 <div class="form-group">
-                    <label for="investigations">जाँच (वैकल्पिक)</label>
+                    <label for="investigations">Investigations (Optional)</label>
                     <textarea id="investigations" name="investigations" class="form-input"
-                              rows="2" placeholder="कोई जाँच या टेस्ट..."></textarea>
+                              rows="2" placeholder="Any tests or investigations..."></textarea>
                 </div>
 
                 <div class="form-group">
-                    <label for="feePaid">शुल्क (₹) *</label>
+                    <label for="feePaid">Fee (₹) *</label>
                     <input type="number" id="feePaid" name="fee_paid" class="form-input"
                            min="0" step="1" value="0" required>
                 </div>
 
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">विज़िट सहेजें</button>
-                    <button type="button" onclick="goBack()" class="btn btn-secondary">रद्द करें</button>
+                    <button type="submit" class="btn btn-primary">Save Visit</button>
+                    <button type="button" onclick="goBack()" class="btn btn-secondary">Cancel</button>
                 </div>
             </form>
         </div>
@@ -84,7 +84,7 @@
             const patientId = urlParams.get('patientId');
 
             if (!patientId) {
-                alert('मरीज़ ID नहीं मिली');
+                alert('Patient ID not found');
                 window.location.href = '/patients.html';
                 return;
             }
@@ -104,7 +104,7 @@
                 loadPastHistory(data.visits);
             } catch (error) {
                 console.error('Error loading patient:', error);
-                alert('मरीज़ की जानकारी लोड करने में त्रुटि');
+                alert('Error loading patient information');
                 window.location.href = '/patients.html';
             }
         }
@@ -114,7 +114,7 @@
             infoBar.style.display = 'block';
             infoBar.querySelector('.patient-brief').innerHTML = `
                 <strong>${patient.name}</strong> &nbsp;|&nbsp;
-                ${patient.age} वर्ष, ${patient.gender === 'Male' ? 'पुरुष' : 'महिला'} &nbsp;|&nbsp;
+                ${patient.age} years, ${patient.gender} &nbsp;|&nbsp;
                 📍 ${patient.village_or_street} &nbsp;|&nbsp;
                 📱 ${patient.whatsapp_number}
             `;
@@ -138,7 +138,7 @@
                     const suggestions = document.getElementById('pastHistorySuggestions');
                     suggestions.innerHTML = `
                         <div class="suggestions-box">
-                            <strong>पहले दर्ज किया गया:</strong>
+                            <strong>Previously recorded:</strong>
                             ${Array.from(pastHistories).map(history => `
                                 <div class="suggestion-item" onclick="document.getElementById('pastHistory').value = '${history.replace(/'/g, "\\'")}'; document.getElementById('pastHistorySuggestions').innerHTML = '';">
                                     ${history}
@@ -181,14 +181,14 @@
                 const result = await response.json();
 
                 if (response.ok) {
-                    alert('विज़िट सफलतापूर्वक सहेजी गई!');
+                    alert('Visit saved successfully!');
                     window.location.href = `/patient-detail.html?id=${data.patient_id}`;
                 } else {
-                    alert('त्रुटि: ' + result.error);
+                    alert('Error: ' + result.error);
                 }
             } catch (error) {
                 console.error('Error saving visit:', error);
-                alert('विज़िट सहेजने में त्रुटि');
+                alert('Error saving visit');
             }
         }
 

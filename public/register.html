@@ -1,194 +1,90 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>नया मरीज़ - क्लिनिक CRM</title>
+    <title>New Patient - Clinic CRM</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
     <nav class="navbar">
         <div class="container">
-            <h1 class="logo">🏥 क्लिनिक CRM</h1>
+            <h1 class="logo">🏥 Clinic CRM</h1>
             <div class="nav-links">
-                <a href="/">डैशबोर्ड</a>
-                <a href="/patients.html">मरीज़ सूची</a>
-                <a href="/register.html" class="active">नया मरीज़</a>
+                <a href="/">Dashboard</a>
+                <a href="/patients.html">Patient List</a>
+                <a href="/register.html" class="active">New Patient</a>
             </div>
         </div>
     </nav>
 
     <div class="container">
         <div class="page-header">
-            <h2>नया मरीज़ रजिस्टर करें</h2>
+            <h2>Register New Patient</h2>
         </div>
 
         <div class="card">
             <form id="patientForm" onsubmit="registerPatient(event)">
                 <div class="form-group">
-                    <label for="name">नाम *</label>
+                    <label for="name">Name *</label>
                     <input type="text" id="name" name="name" class="form-input" required>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="age">उम्र *</label>
+                        <label for="age">Age *</label>
                         <input type="number" id="age" name="age" class="form-input" min="0" max="150" required>
                     </div>
 
                     <div class="form-group">
-                        <label for="gender">लिंग *</label>
+                        <label for="gender">Gender *</label>
                         <select id="gender" name="gender" class="form-input" required>
-                            <option value="">चुनें</option>
-                            <option value="Male">पुरुष</option>
-                            <option value="Female">महिला</option>
-                            <option value="Other">अन्य</option>
+                            <option value="">Select</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
                         </select>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label for="fatherHusbandName">पिता/पति का नाम</label>
+                    <label for="fatherHusbandName">Father/Husband Name</label>
                     <input type="text" id="fatherHusbandName" name="father_or_husband_name" class="form-input">
                 </div>
 
                 <div class="form-group">
-                    <label for="whatsappNumber">व्हाट्सएप नंबर *</label>
+                    <label for="whatsappNumber">WhatsApp Number *</label>
                     <input type="tel" id="whatsappNumber" name="whatsapp_number" class="form-input"
-                           pattern="[0-9]{10}" maxlength="10" placeholder="10 अंकों का नंबर" required>
-                    <small>10 अंकों का मोबाइल नंबर दर्ज करें</small>
+                           pattern="[0-9]{10}" maxlength="10" placeholder="10 digit number" required>
+                    <small>Enter 10 digit mobile number</small>
                 </div>
 
                 <div class="form-group">
-                    <label>
-                        <input type="checkbox" id="isHOF" name="is_head_of_family" onchange="toggleHOFFields()">
-                        परिवार का मुखिया है
-                    </label>
-                </div>
-
-                <div id="hofFields" style="display: none;">
-                    <div class="form-group">
-                        <label for="hofSelect">परिवार मुखिया चुनें *</label>
-                        <select id="hofSelect" name="head_of_family_id" class="form-input" onchange="loadFamilyDetails()">
-                            <option value="">परिवार मुखिया चुनें...</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="relation">परिवार मुखिया से संबंध *</label>
-                        <select id="relation" name="relation_with_hof" class="form-input">
-                            <option value="">चुनें</option>
-                            <option value="wife">पत्नी</option>
-                            <option value="husband">पति</option>
-                            <option value="son">बेटा</option>
-                            <option value="daughter">बेटी</option>
-                            <option value="mother">माँ</option>
-                            <option value="father">पिता</option>
-                            <option value="other">अन्य</option>
-                        </select>
-                    </div>
-
-                    <div id="familyInfo" class="info-box" style="display: none;"></div>
+                    <label for="hofName">Head of Family Name *</label>
+                    <input type="text" id="hofName" name="head_of_family_name" class="form-input" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="village">गाँव/मोहल्ला *</label>
+                    <label for="relation">Relationship with Head of Family *</label>
+                    <input type="text" id="relation" name="relation_with_hof" class="form-input" placeholder="e.g., Self, Wife, Son, Daughter, etc." required>
+                </div>
+
+                <div id="familyInfo" class="info-box" style="display: none;"></div>
+
+                <div class="form-group">
+                    <label for="village">Village/Street *</label>
                     <input type="text" id="village" name="village_or_street" class="form-input" required>
                 </div>
 
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">रजिस्टर करें</button>
-                    <button type="button" onclick="window.location.href='/patients.html'" class="btn btn-secondary">रद्द करें</button>
+                    <button type="submit" class="btn btn-primary">Register</button>
+                    <button type="button" onclick="window.location.href='/patients.html'" class="btn btn-secondary">Cancel</button>
                 </div>
             </form>
         </div>
     </div>
 
     <script>
-        let hofList = [];
-
-        // Load heads of family on page load
-        async function loadHOFList() {
-            try {
-                const response = await fetch('/api/patients/hof/list');
-                hofList = await response.json();
-
-                const select = document.getElementById('hofSelect');
-                select.innerHTML = '<option value="">परिवार मुखिया चुनें...</option>' +
-                    hofList.map(hof => `<option value="${hof.id}">${hof.name} - ${hof.village_or_street}</option>`).join('');
-            } catch (error) {
-                console.error('Error loading HOF list:', error);
-            }
-        }
-
-        function toggleHOFFields() {
-            const isHOF = document.getElementById('isHOF').checked;
-            const hofFields = document.getElementById('hofFields');
-            const villageInput = document.getElementById('village');
-
-            if (isHOF) {
-                hofFields.style.display = 'none';
-                villageInput.removeAttribute('readonly');
-                document.getElementById('relation').value = 'self';
-            } else {
-                hofFields.style.display = 'block';
-                document.getElementById('hofSelect').required = true;
-                document.getElementById('relation').required = true;
-            }
-        }
-
-        async function loadFamilyDetails() {
-            const hofId = document.getElementById('hofSelect').value;
-            if (!hofId) {
-                document.getElementById('familyInfo').style.display = 'none';
-                document.getElementById('village').value = '';
-                document.getElementById('village').removeAttribute('readonly');
-                return;
-            }
-
-            try {
-                const response = await fetch(`/api/patients/family/${hofId}`);
-                const family = await response.json();
-
-                if (family.length > 0) {
-                    const hof = family.find(m => m.is_head_of_family);
-                    if (hof) {
-                        // Auto-fill village
-                        document.getElementById('village').value = hof.village_or_street;
-                        document.getElementById('village').setAttribute('readonly', 'readonly');
-
-                        // Show family members
-                        const familyInfo = document.getElementById('familyInfo');
-                        familyInfo.style.display = 'block';
-                        familyInfo.innerHTML = `
-                            <h4>परिवार के सदस्य:</h4>
-                            <ul>
-                                ${family.map(member => `
-                                    <li>${member.name} (${member.age} वर्ष, ${member.gender === 'Male' ? 'पुरुष' : 'महिला'}) - ${getRelationInHindi(member.relation_with_hof)}</li>
-                                `).join('')}
-                            </ul>
-                        `;
-                    }
-                }
-            } catch (error) {
-                console.error('Error loading family details:', error);
-            }
-        }
-
-        function getRelationInHindi(relation) {
-            const relations = {
-                'self': 'मुखिया',
-                'wife': 'पत्नी',
-                'husband': 'पति',
-                'son': 'बेटा',
-                'daughter': 'बेटी',
-                'mother': 'माँ',
-                'father': 'पिता',
-                'other': 'अन्य'
-            };
-            return relations[relation] || relation;
-        }
-
         async function registerPatient(event) {
             event.preventDefault();
 
@@ -197,16 +93,18 @@
             const data = {};
 
             formData.forEach((value, key) => {
-                if (key === 'is_head_of_family') {
-                    data[key] = document.getElementById('isHOF').checked;
-                } else if (key === 'head_of_family_id' || key === 'age') {
+                if (key === 'age') {
                     data[key] = value ? parseInt(value) : null;
                 } else {
                     data[key] = value;
                 }
             });
 
-            // Set relation_with_hof
+            // Set is_head_of_family based on relation
+            const relation = data.relation_with_hof ? data.relation_with_hof.toLowerCase() : '';
+            data.is_head_of_family = (relation === 'self' || relation === 'स्वयं' || relation === 'मुखिया');
+
+            // If self, set relation_with_hof to 'self'
             if (data.is_head_of_family) {
                 data.relation_with_hof = 'self';
                 data.head_of_family_id = null;
@@ -222,23 +120,16 @@
                 const result = await response.json();
 
                 if (response.ok) {
-                    alert('मरीज़ सफलतापूर्वक रजिस्टर किया गया!');
+                    alert('Patient registered successfully!');
                     window.location.href = `/patient-detail.html?id=${result.id}`;
                 } else {
-                    alert('त्रुटि: ' + result.error);
+                    alert('Error: ' + result.error);
                 }
             } catch (error) {
                 console.error('Error registering patient:', error);
-                alert('मरीज़ रजिस्टर करने में त्रुटि');
+                alert('Error registering patient');
             }
         }
-
-        // Load HOF list on page load
-        loadHOFList();
-
-        // Set default to HOF
-        document.getElementById('isHOF').checked = true;
-        document.getElementById('relation').value = 'self';
     </script>
 </body>
 </html>
