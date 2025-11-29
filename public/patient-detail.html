@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>मरीज़ विवरण - क्लिनिक CRM</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <h1 class="logo">🏥 क्लिनिक CRM</h1>
+            <div class="nav-links">
+                <a href="/">डैशबोर्ड</a>
+                <a href="/patients.html">मरीज़ सूची</a>
+                <a href="/register.html">नया मरीज़</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div id="patientContent">
+            <p class="loading">लोड हो रहा है...</p>
+        </div>
+    </div>
+
+    <script>
+        let currentPatientId = null;
+
+        async function loadPatientDetails() {
+            const urlParams = new URLSearchParams(window.location.search);
+            currentPatientId = urlParams.get('id');
+
+            if (!currentPatientId) {
+                document.getElementById('patientContent').innerHTML = '<p class="error">मरीज़ नहीं मिला</p>';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/patients/${currentPatientId}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error);
+                }
+
+                displayPatientDetails(data);
+            } catch (error) {
+                console.error('Error loading patient:', error);
+                document.getElementById('patientContent').innerHTML = '<p class="error">मरीज़ लोड करने में त्रुटि</p>';
+            }
+        }
+
+        function displayPatientDetails(data) {
+            const { patient, familyMembers, pastIllnesses, visits } = data;
+
+            const content = `
+                <div class="page-header">
+                    <h2>${patient.name}</h2>
+                    <a href="/visit.html?patientId=${patient.id}" class="btn btn-primary">+ नई विज़िट जोड़ें</a>
+                </div>
+
+                <div class="patient-detail-grid">
+                    <!-- Left Column: Patient Info & Family -->
+                    <div class="left-column">
+                        <!-- Patient Info Card -->
+                        <div class="card">
+                            <h3>मरीज़ की जानकारी</h3>
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <label>नाम:</label>
+                                    <span>${patient.name}</span>
+                                </div>
+                                <div class="info-item">
+                                    <label>उम्र:</label>
+                                    <span>${patient.age} वर्ष</span>
+                                </div>
+                                <div class="info-item">
+                                    <label>लिंग:</label>
+                                    <span>${patient.gender === 'Male' ? 'पुरुष' : patient.gender === 'Female' ? 'महिला' : 'अन्य'}</span>
+                                </div>
+                                <div class="info-item">
+                                    <label>पिता/पति:</label>
+                                    <span>${patient.father_or_husband_name || '-'}</span>
+                                </div>
+                                <div class="info-item">
+                                    <label>गाँव/मोहल्ला:</label>
+                                    <span>${patient.village_or_street}</span>
+                                </div>
+                                <div class="info-item">
+                                    <label>व्हाट्सएप:</label>
+                                    <span>${patient.whatsapp_number}</span>
+                                </div>
+                                <div class="info-item">
+                                    <label>परिवार में संबंध:</label>
+                                    <span>${getRelationInHindi(patient.relation_with_hof)}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Family Members Card -->
+                        ${familyMembers && familyMembers.length > 1 ? `
+                        <div class="card">
+                            <h3>परिवार के सदस्य</h3>
+                            <div class="family-list">
+                                ${familyMembers.map(member => `
+                                    <div class="family-member ${member.id == currentPatientId ? 'current' : ''}"
+                                         onclick="${member.id != currentPatientId ? `window.location.href='/patient-detail.html?id=${member.id}'` : ''}">
+                                        <div class="member-info">
+                                            <strong>${member.name}</strong>
+                                            ${member.is_head_of_family ? '<span class="badge badge-success">मुखिया</span>' : ''}
+                                        </div>
+                                        <div class="member-meta">
+                                            <span>${member.age} वर्ष, ${member.gender === 'Male' ? 'पुरुष' : 'महिला'}</span>
+                                            <span>${getRelationInHindi(member.relation_with_hof)}</span>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        ` : ''}
+
+                        <!-- Past Illnesses Card -->
+                        <div class="card">
+                            <h3>पुरानी बीमारियाँ</h3>
+                            ${pastIllnesses && pastIllnesses.length > 0 ? `
+                                <ul class="illness-list">
+                                    ${pastIllnesses.map(illness => `
+                                        <li>
+                                            <strong>${illness.illness_name}</strong>
+                                            <small>पहली बार: ${formatDate(illness.first_occurrence_date)}</small>
+                                        </li>
+                                    `).join('')}
+                                </ul>
+                            ` : '<p class="empty-state">कोई पुरानी बीमारी दर्ज नहीं</p>'}
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Visits -->
+                    <div class="right-column">
+                        <div class="card">
+                            <h3>विज़िट का इतिहास</h3>
+                            ${visits && visits.length > 0 ? `
+                                <div class="visits-list">
+                                    ${visits.map(visit => `
+                                        <div class="visit-card">
+                                            <div class="visit-header">
+                                                <strong>📅 ${formatDate(visit.visit_date)}</strong>
+                                                <button onclick="printVisit(${visit.id})" class="btn-icon" title="प्रिंट करें">🖨️</button>
+                                            </div>
+                                            <div class="visit-content">
+                                                <div class="visit-section">
+                                                    <label>मुख्य शिकायत:</label>
+                                                    <p>${visit.chief_complaint || '-'}</p>
+                                                </div>
+                                                ${visit.past_history ? `
+                                                <div class="visit-section">
+                                                    <label>पुराना इतिहास:</label>
+                                                    <p>${visit.past_history}</p>
+                                                </div>
+                                                ` : ''}
+                                                <div class="visit-section">
+                                                    <label>दवाइयाँ:</label>
+                                                    <p class="prescription">${visit.prescription || '-'}</p>
+                                                </div>
+                                                ${visit.investigations ? `
+                                                <div class="visit-section">
+                                                    <label>जाँच:</label>
+                                                    <p>${visit.investigations}</p>
+                                                </div>
+                                                ` : ''}
+                                                <div class="visit-footer">
+                                                    <span class="fee">शुल्क: ₹${visit.fee_paid}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            ` : '<p class="empty-state">कोई विज़िट दर्ज नहीं</p>'}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('patientContent').innerHTML = content;
+        }
+
+        function getRelationInHindi(relation) {
+            const relations = {
+                'self': 'मुखिया',
+                'wife': 'पत्नी',
+                'husband': 'पति',
+                'son': 'बेटा',
+                'daughter': 'बेटी',
+                'mother': 'माँ',
+                'father': 'पिता',
+                'other': 'अन्य'
+            };
+            return relations[relation] || relation;
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('hi-IN', { year: 'numeric', month: 'long', day: 'numeric' });
+        }
+
+        async function printVisit(visitId) {
+            try {
+                const response = await fetch(`/api/visits/${visitId}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error);
+                }
+
+                const { visit, patient } = data;
+
+                // Create print window
+                const printWindow = window.open('', '_blank');
+                printWindow.document.write(`
+                    <!DOCTYPE html>
+                    <html lang="hi">
+                    <head>
+                        <meta charset="UTF-8">
+                        <title>प्रिस्क्रिप्शन - ${patient.name}</title>
+                        <style>
+                            body { font-family: Arial, sans-serif; padding: 20px; }
+                            .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
+                            .patient-info { margin-bottom: 20px; }
+                            .patient-info div { margin: 5px 0; }
+                            .section { margin: 15px 0; }
+                            .section label { font-weight: bold; display: block; margin-bottom: 5px; }
+                            .prescription { white-space: pre-line; line-height: 1.8; }
+                            .footer { margin-top: 40px; text-align: right; }
+                            @media print { .no-print { display: none; } }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="header">
+                            <h2>🏥 ग्रामीण क्लिनिक</h2>
+                            <p>प्रिस्क्रिप्शन</p>
+                        </div>
+                        <div class="patient-info">
+                            <div><strong>नाम:</strong> ${patient.name}</div>
+                            <div><strong>उम्र/लिंग:</strong> ${patient.age} वर्ष / ${patient.gender === 'Male' ? 'पुरुष' : 'महिला'}</div>
+                            <div><strong>गाँव:</strong> ${patient.village_or_street}</div>
+                            <div><strong>तारीख:</strong> ${formatDate(visit.visit_date)}</div>
+                        </div>
+                        <div class="section">
+                            <label>मुख्य शिकायत:</label>
+                            <p>${visit.chief_complaint}</p>
+                        </div>
+                        ${visit.past_history ? `
+                        <div class="section">
+                            <label>पुराना इतिहास:</label>
+                            <p>${visit.past_history}</p>
+                        </div>
+                        ` : ''}
+                        <div class="section">
+                            <label>दवाइयाँ:</label>
+                            <p class="prescription">${visit.prescription}</p>
+                        </div>
+                        ${visit.investigations ? `
+                        <div class="section">
+                            <label>जाँच:</label>
+                            <p>${visit.investigations}</p>
+                        </div>
+                        ` : ''}
+                        <div class="footer">
+                            <p>डॉक्टर के हस्ताक्षर: _________________</p>
+                        </div>
+                        <div class="no-print" style="text-align: center; margin-top: 20px;">
+                            <button onclick="window.print()">प्रिंट करें</button>
+                            <button onclick="window.close()">बंद करें</button>
+                        </div>
+                    </body>
+                    </html>
+                `);
+                printWindow.document.close();
+            } catch (error) {
+                console.error('Error loading visit:', error);
+                alert('विज़िट लोड करने में त्रुटि');
+            }
+        }
+
+        // Load patient details on page load
+        loadPatientDetails();
+    </script>
+</body>
+</html>

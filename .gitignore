@@ -1,0 +1,6 @@
+node_modules/
+database/clinic.db
+database/clinic.db.backup
+*.log
+.DS_Store
+.env

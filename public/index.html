@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>क्लिनिक CRM - डैशबोर्ड</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <h1 class="logo">🏥 क्लिनिक CRM</h1>
+            <div class="nav-links">
+                <a href="/" class="active">डैशबोर्ड</a>
+                <a href="/patients.html">मरीज़ सूची</a>
+                <a href="/register.html">नया मरीज़</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h2>डैशबोर्ड</h2>
+            <p id="currentDate"></p>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-content">
+                    <h3 id="totalPatients">0</h3>
+                    <p>कुल मरीज़</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📋</div>
+                <div class="stat-content">
+                    <h3 id="todayVisits">0</h3>
+                    <p>आज की विज़िट</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Search -->
+        <div class="card">
+            <h3>मरीज़ खोजें</h3>
+            <div class="search-box">
+                <input type="text" id="quickSearch" placeholder="नाम, गाँव, या व्हाट्सएप नंबर से खोजें..." class="form-input">
+                <button onclick="searchPatient()" class="btn btn-primary">खोजें</button>
+            </div>
+        </div>
+
+        <!-- Recent Patients -->
+        <div class="card">
+            <h3>हाल के मरीज़</h3>
+            <div id="recentPatients" class="patient-list">
+                <p class="loading">लोड हो रहा है...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Set current date
+        const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString('hi-IN', dateOptions);
+
+        // Load dashboard data
+        async function loadDashboard() {
+            try {
+                const response = await fetch('/api/dashboard');
+                const data = await response.json();
+
+                document.getElementById('totalPatients').textContent = data.totalPatients || 0;
+                document.getElementById('todayVisits').textContent = data.todayVisits || 0;
+
+                // Display recent patients
+                const recentPatientsDiv = document.getElementById('recentPatients');
+                if (data.recentPatients && data.recentPatients.length > 0) {
+                    recentPatientsDiv.innerHTML = data.recentPatients.map(patient => `
+                        <div class="patient-item" onclick="window.location.href='/patient-detail.html?id=${patient.id}'">
+                            <div class="patient-info">
+                                <strong>${patient.name}</strong>
+                                <span class="badge ${patient.gender === 'Male' ? 'badge-blue' : 'badge-pink'}">
+                                    ${patient.gender === 'Male' ? 'पुरुष' : 'महिला'}
+                                </span>
+                                <span class="age">${patient.age} वर्ष</span>
+                            </div>
+                            <div class="patient-meta">
+                                <span>📍 ${patient.village_or_street}</span>
+                                <span>📱 ${patient.whatsapp_number}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    recentPatientsDiv.innerHTML = '<p class="empty-state">कोई मरीज़ नहीं मिला</p>';
+                }
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                alert('डेटा लोड करने में त्रुटि');
+            }
+        }
+
+        function searchPatient() {
+            const searchTerm = document.getElementById('quickSearch').value;
+            window.location.href = `/patients.html?search=${encodeURIComponent(searchTerm)}`;
+        }
+
+        // Allow search on Enter key
+        document.getElementById('quickSearch').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchPatient();
+            }
+        });
+
+        // Load data on page load
+        loadDashboard();
+    </script>
+</body>
+</html>

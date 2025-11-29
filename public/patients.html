@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>मरीज़ सूची - क्लिनिक CRM</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <h1 class="logo">🏥 क्लिनिक CRM</h1>
+            <div class="nav-links">
+                <a href="/">डैशबोर्ड</a>
+                <a href="/patients.html" class="active">मरीज़ सूची</a>
+                <a href="/register.html">नया मरीज़</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h2>मरीज़ सूची</h2>
+            <a href="/register.html" class="btn btn-primary">+ नया मरीज़ जोड़ें</a>
+        </div>
+
+        <!-- Search and Filter -->
+        <div class="card">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="नाम, गाँव, या व्हाट्सएप नंबर से खोजें..." class="form-input">
+                <button onclick="searchPatients()" class="btn btn-primary">खोजें</button>
+                <button onclick="clearSearch()" class="btn btn-secondary">साफ़ करें</button>
+            </div>
+        </div>
+
+        <!-- Patient List -->
+        <div class="card">
+            <div id="patientsList" class="patient-list">
+                <p class="loading">लोड हो रहा है...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allPatients = [];
+
+        async function loadPatients(search = '') {
+            try {
+                const url = search ? `/api/patients?search=${encodeURIComponent(search)}` : '/api/patients';
+                const response = await fetch(url);
+                allPatients = await response.json();
+
+                displayPatients(allPatients);
+            } catch (error) {
+                console.error('Error loading patients:', error);
+                document.getElementById('patientsList').innerHTML =
+                    '<p class="error">मरीज़ लोड करने में त्रुटि</p>';
+            }
+        }
+
+        function displayPatients(patients) {
+            const listDiv = document.getElementById('patientsList');
+
+            if (patients.length === 0) {
+                listDiv.innerHTML = '<p class="empty-state">कोई मरीज़ नहीं मिला</p>';
+                return;
+            }
+
+            listDiv.innerHTML = patients.map(patient => `
+                <div class="patient-item" onclick="window.location.href='/patient-detail.html?id=${patient.id}'">
+                    <div class="patient-info">
+                        <strong>${patient.name}</strong>
+                        ${patient.is_head_of_family ? '<span class="badge badge-success">परिवार मुखिया</span>' : ''}
+                        <span class="badge ${patient.gender === 'Male' ? 'badge-blue' : 'badge-pink'}">
+                            ${patient.gender === 'Male' ? 'पुरुष' : 'महिला'}
+                        </span>
+                        <span class="age">${patient.age} वर्ष</span>
+                    </div>
+                    <div class="patient-meta">
+                        <span>👤 ${patient.father_or_husband_name}</span>
+                        <span>📍 ${patient.village_or_street}</span>
+                        <span>📱 ${patient.whatsapp_number}</span>
+                    </div>
+                    ${!patient.is_head_of_family ? `<div class="patient-meta"><small>संबंध: ${getRelationInHindi(patient.relation_with_hof)}</small></div>` : ''}
+                </div>
+            `).join('');
+        }
+
+        function getRelationInHindi(relation) {
+            const relations = {
+                'self': 'स्वयं',
+                'wife': 'पत्नी',
+                'husband': 'पति',
+                'son': 'बेटा',
+                'daughter': 'बेटी',
+                'mother': 'माँ',
+                'father': 'पिता',
+                'other': 'अन्य'
+            };
+            return relations[relation] || relation;
+        }
+
+        function searchPatients() {
+            const searchTerm = document.getElementById('searchInput').value;
+            loadPatients(searchTerm);
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            loadPatients();
+        }
+
+        // Allow search on Enter key
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchPatients();
+            }
+        });
+
+        // Check if there's a search query in URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const searchQuery = urlParams.get('search');
+        if (searchQuery) {
+            document.getElementById('searchInput').value = searchQuery;
+            loadPatients(searchQuery);
+        } else {
+            loadPatients();
+        }
+    </script>
+</body>
+</html>

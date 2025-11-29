@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>नई विज़िट - क्लिनिक CRM</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <h1 class="logo">🏥 क्लिनिक CRM</h1>
+            <div class="nav-links">
+                <a href="/">डैशबोर्ड</a>
+                <a href="/patients.html">मरीज़ सूची</a>
+                <a href="/register.html">नया मरीज़</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h2>नई विज़िट दर्ज करें</h2>
+        </div>
+
+        <div class="patient-info-bar" id="patientInfoBar" style="display: none;">
+            <div class="patient-brief"></div>
+        </div>
+
+        <div class="card">
+            <form id="visitForm" onsubmit="saveVisit(event)">
+                <input type="hidden" id="patientId" name="patient_id">
+
+                <div class="form-group">
+                    <label for="visitDate">विज़िट की तारीख *</label>
+                    <input type="date" id="visitDate" name="visit_date" class="form-input" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="chiefComplaint">मुख्य शिकायत *</label>
+                    <textarea id="chiefComplaint" name="chief_complaint" class="form-input"
+                              rows="3" placeholder="मुख्य शिकायत दर्ज करें..." required></textarea>
+                    <small>कई शिकायतें हों तो कॉमा (,) से अलग करें</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="pastHistory">पुराना इतिहास</label>
+                    <textarea id="pastHistory" name="past_history" class="form-input"
+                              rows="3" placeholder="पहले की बीमारियाँ..."></textarea>
+                    <div id="pastHistorySuggestions" class="suggestions"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="prescription">दवाइयाँ *</label>
+                    <textarea id="prescription" name="prescription" class="form-input"
+                              rows="5" placeholder="दवाइयों की सूची...&#10;उदाहरण:&#10;Tab Paracetamol 500mg TDS x 3 days&#10;Syrup Cough 2 tsp BD x 5 days" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="investigations">जाँच (वैकल्पिक)</label>
+                    <textarea id="investigations" name="investigations" class="form-input"
+                              rows="2" placeholder="कोई जाँच या टेस्ट..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="feePaid">शुल्क (₹) *</label>
+                    <input type="number" id="feePaid" name="fee_paid" class="form-input"
+                           min="0" step="1" value="0" required>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">विज़िट सहेजें</button>
+                    <button type="button" onclick="goBack()" class="btn btn-secondary">रद्द करें</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentPatient = null;
+
+        async function loadPatientInfo() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const patientId = urlParams.get('patientId');
+
+            if (!patientId) {
+                alert('मरीज़ ID नहीं मिली');
+                window.location.href = '/patients.html';
+                return;
+            }
+
+            document.getElementById('patientId').value = patientId;
+
+            try {
+                const response = await fetch(`/api/patients/${patientId}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error);
+                }
+
+                currentPatient = data.patient;
+                displayPatientInfo(currentPatient);
+                loadPastHistory(data.visits);
+            } catch (error) {
+                console.error('Error loading patient:', error);
+                alert('मरीज़ की जानकारी लोड करने में त्रुटि');
+                window.location.href = '/patients.html';
+            }
+        }
+
+        function displayPatientInfo(patient) {
+            const infoBar = document.getElementById('patientInfoBar');
+            infoBar.style.display = 'block';
+            infoBar.querySelector('.patient-brief').innerHTML = `
+                <strong>${patient.name}</strong> &nbsp;|&nbsp;
+                ${patient.age} वर्ष, ${patient.gender === 'Male' ? 'पुरुष' : 'महिला'} &nbsp;|&nbsp;
+                📍 ${patient.village_or_street} &nbsp;|&nbsp;
+                📱 ${patient.whatsapp_number}
+            `;
+        }
+
+        function loadPastHistory(visits) {
+            if (!visits || visits.length === 0) return;
+
+            // Collect unique past history entries
+            const pastHistories = new Set();
+            visits.forEach(visit => {
+                if (visit.past_history) {
+                    pastHistories.add(visit.past_history);
+                }
+            });
+
+            // Add autocomplete suggestions
+            const pastHistoryField = document.getElementById('pastHistory');
+            pastHistoryField.addEventListener('focus', function() {
+                if (pastHistories.size > 0) {
+                    const suggestions = document.getElementById('pastHistorySuggestions');
+                    suggestions.innerHTML = `
+                        <div class="suggestions-box">
+                            <strong>पहले दर्ज किया गया:</strong>
+                            ${Array.from(pastHistories).map(history => `
+                                <div class="suggestion-item" onclick="document.getElementById('pastHistory').value = '${history.replace(/'/g, "\\'")}'; document.getElementById('pastHistorySuggestions').innerHTML = '';">
+                                    ${history}
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+            });
+
+            pastHistoryField.addEventListener('blur', function() {
+                setTimeout(() => {
+                    document.getElementById('pastHistorySuggestions').innerHTML = '';
+                }, 200);
+            });
+        }
+
+        async function saveVisit(event) {
+            event.preventDefault();
+
+            const form = event.target;
+            const formData = new FormData(form);
+            const data = {};
+
+            formData.forEach((value, key) => {
+                if (key === 'patient_id' || key === 'fee_paid') {
+                    data[key] = parseInt(value);
+                } else {
+                    data[key] = value;
+                }
+            });
+
+            try {
+                const response = await fetch('/api/visits', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert('विज़िट सफलतापूर्वक सहेजी गई!');
+                    window.location.href = `/patient-detail.html?id=${data.patient_id}`;
+                } else {
+                    alert('त्रुटि: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Error saving visit:', error);
+                alert('विज़िट सहेजने में त्रुटि');
+            }
+        }
+
+        function goBack() {
+            const patientId = document.getElementById('patientId').value;
+            if (patientId) {
+                window.location.href = `/patient-detail.html?id=${patientId}`;
+            } else {
+                window.location.href = '/patients.html';
+            }
+        }
+
+        // Set today's date as default
+        document.getElementById('visitDate').valueAsDate = new Date();
+
+        // Load patient info on page load
+        loadPatientInfo();
+    </script>
+</body>
+</html>
