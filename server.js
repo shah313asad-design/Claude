@@ -4,7 +4,7 @@ const path = require('path');
 const db = require('./database/db');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(bodyParser.json());
@@ -302,7 +302,8 @@ app.get('/api/visits/:id', (req, res) => {
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`\n✓ Clinic CRM Server running on http://localhost:${PORT}`);
+  console.log(`\n✓ Clinic CRM API Server running on http://localhost:${PORT}`);
   console.log(`✓ Database: SQLite (offline-first)`);
-  console.log(`✓ Open http://localhost:${PORT} in your browser\n`);
+  console.log(`✓ Frontend (React + Vite): http://localhost:3000`);
+  console.log(`✓ Run 'npm run dev:all' to start both servers\n`);
 });
