@@ -2,29 +2,64 @@
   "name": "clinic-crm",
   "version": "1.0.0",
   "description": "Offline-first CRM for rural clinic in India",
-  "main": "server.js",
+  "main": "electron/main.js",
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
     "seed": "node database/seed.js",
     "build": "vite build",
     "preview": "vite preview",
-    "dev:all": "concurrently \"vite\" \"nodemon server.js\""
+    "dev:all": "concurrently \"vite\" \"nodemon server.js\"",
+    "electron:dev": "concurrently \"vite\" \"wait-on http://localhost:3000 && electron .\"",
+    "electron:build": "vite build && electron-builder --mac",
+    "electron:build:dmg": "vite build && electron-builder --mac --config electron-builder.json"
   },
-  "keywords": ["clinic", "crm", "offline", "sqlite"],
-  "author": "",
+  "keywords": [
+    "clinic",
+    "crm",
+    "offline",
+    "sqlite"
+  ],
+  "author": "Dr Shah Asad Rasheed",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.18.2",
-    "sqlite3": "^5.1.6",
     "body-parser": "^1.20.2",
+    "express": "^4.18.2",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "sqlite3": "^5.1.6"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1",
     "@vitejs/plugin-react": "^4.2.1",
+    "concurrently": "^8.2.2",
+    "electron": "^28.3.3",
+    "electron-builder": "^24.13.3",
+    "electron-is-dev": "^3.0.1",
+    "nodemon": "^3.0.1",
     "vite": "^5.0.0",
-    "concurrently": "^8.2.2"
+    "wait-on": "^7.2.0"
+  },
+  "build": {
+    "appId": "com.clinic.crm",
+    "productName": "Clinic CRM",
+    "mac": {
+      "category": "public.app-category.medical",
+      "icon": "build/icon.icns",
+      "target": [
+        "dmg",
+        "zip"
+      ]
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "database/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "buildResources": "build",
+      "output": "release"
+    }
   }
 }

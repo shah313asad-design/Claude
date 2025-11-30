@@ -4,3 +4,13 @@ database/clinic.db.backup
 *.log
 .DS_Store
 .env
+
+# Electron build outputs
+dist/
+release/
+out/
+
+# IDE
+.vscode/
+.idea/
+*.swp
